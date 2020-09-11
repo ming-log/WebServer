@@ -9,28 +9,46 @@
 
 from socket import *
 import threading
+import re
 
 
 def work(client_socket, client_addr):
-    while True:
-        # 接收对方发送过来的数据
-        recv_data = client_socket.recv(1024).decode("gbk")  # 接收1024个字节
-        # 如果recv解堵塞，那么有2种方式:
-        # 1. 客户端发送过来数据
-        # 2. 客户端调用close导致，这里recv解堵塞recv_data将为空
-        if not recv_data:
-            break
-        print('接收到的数据为:\n', recv_data)
+    # 接收对方发送过来的数据
+    recv_data = client_socket.recv(1024).decode("gbk")  # 接收1024个字节
+    # 解析请求的页面名字
+    ret = r"^GET (/.*?) HTTP"
+    page_name = re.findall(ret, recv_data)
+    print('请求的页面为:', page_name)
 
+    if page_name:
+        page_name = page_name[0]
+        if page_name == '/':
+            page_name = "/index.html"   # 如果返回的是/，则让网址访问index.html
+    # 打开文件操作及其危险，因此在此尝试打开文件
+    try:
+        # 拼接地址
+        root_path = r'E:/html'   # 根目录
+        complete_page_path = root_path + page_name    # 拼接
+        # 打开页面，并读取内容
+        f = open(complete_page_path, 'rb')   # 打开文件
+    except:   # 如果打开文件失败，则返回404
+        response = "HTTP/1.1 404 NOT FOUND\r\n"
+        response += "\r\n"
+        response += "------file not found-----"
+        client_socket.send(response.encode("utf-8"))
+    else:
+        body = f.read()
+        f.close()
         response = "HTTP/1.1 200 OK\r\n"
         response += "\r\n"
-        body = "<h1>你好!</h1>\r\n"
-        return_data = response + body
+        # body = "<h1>你好!</h1>\r\n"
+        # return_data = response + body
         # 发送一些数据到客户端
-        client_socket.send(return_data.encode('utf-8'))
+        client_socket.send(response.encode('utf-8'))
+        client_socket.send(body)
+    client_socket.close()
     print('---- 客户%s服务完毕 ----' % str(client_addr))
     # 关闭为这个客户端服务的套接字,只要关闭了，就意味着不能再为这个客户端服务了，如果还需要服务，只能再次访问
-    client_socket.close()
 
 
 def main():
@@ -39,7 +57,7 @@ def main():
     # 设置当服务器先close 即服务器端4次握手之后资源能够立即释放，这样就保证了，下次运行程序时，可以立即使用该端口
     tcp_server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     # 本地信息
-    address = ('127.0.0.1', 8070)
+    address = ('192.168.0.110', 8070)
 
     # 绑定
     tcp_server_socket.bind(address)
@@ -53,7 +71,6 @@ def main():
         client_socket, client_addr = tcp_server_socket.accept()
         t = threading.Thread(target=work, args=(client_socket, client_addr))
         t.start()
-    t.join()
     tcp_server_socket.close()
 
 
