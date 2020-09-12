@@ -8,9 +8,7 @@
 # 要求多个浏览器可以同时访问
 
 from socket import *
-import threading
 import re
-import time
 
 
 def work(client_socket_list):
@@ -56,8 +54,6 @@ def work(client_socket_list):
             client_socket_list.remove(client_socket)
             client_socket.close()
             print("-----客户端关闭-----")
-
-
 
 
 def main():
