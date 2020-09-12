@@ -27,7 +27,7 @@ def work(client_socket, client_addr):
     # 打开文件操作及其危险，因此在此尝试打开文件
     try:
         # 拼接地址
-        root_path = r'E:/html'   # 根目录
+        root_path = r'./html'   # 根目录
         complete_page_path = root_path + page_name    # 拼接
         # 打开页面，并读取内容
         f = open(complete_page_path, 'rb')   # 打开文件
