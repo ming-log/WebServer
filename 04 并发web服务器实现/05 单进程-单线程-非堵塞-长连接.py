@@ -69,7 +69,7 @@ def main():
     # 设置当服务器先close 即服务器端4次握手之后资源能够立即释放，这样就保证了，下次运行程序时，可以立即使用该端口
     tcp_server_socket.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
     # 本地信息
-    address = ('192.168.0.110', 8070)
+    address = ('', 8070)
 
     # 绑定
     tcp_server_socket.bind(address)
